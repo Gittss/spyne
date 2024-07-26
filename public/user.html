@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+    <title>User List</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>User List</h1>
+      <div class="row">
+        <div class="col">
+          <form id="userForm" class="mb-4">
+            <h3>Add User</h3>
+            <div class="form-group">
+              <label for="name">Name:</label>
+              <input
+                type="text"
+                id="name"
+                class="form-control"
+                placeholder="Enter name"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="mobileNo">Mobile No:</label>
+              <input
+                type="text"
+                id="mobileNo"
+                class="form-control"
+                placeholder="Enter mobile number"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="email">Email:</label>
+              <input
+                type="email"
+                id="email"
+                class="form-control"
+                placeholder="Enter email"
+                required
+              />
+            </div>
+            <button type="button" class="btn btn-primary" onclick="addUser()">
+              Add User
+            </button>
+          </form>
+        </div>
+        <div class="col">
+          <form id="updateForm" class="mb-4">
+            <h3>Update User</h3>
+            <div class="form-group">
+              <label for="updateEmail">Email:</label>
+              <input
+                type="email"
+                id="updateEmail"
+                class="form-control"
+                placeholder="Enter email to update"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="updateName">Name:</label>
+              <input
+                type="text"
+                id="updateName"
+                class="form-control"
+                placeholder="Enter new name"
+              />
+            </div>
+            <div class="form-group">
+              <label for="updateMobileNo">Mobile No:</label>
+              <input
+                type="text"
+                id="updateMobileNo"
+                class="form-control"
+                placeholder="Enter new mobile number"
+              />
+            </div>
+            <button
+              type="button"
+              class="btn btn-warning"
+              onclick="updateUser()"
+            >
+              Update User
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="searchName">Search by Name:</label>
+        <input
+          type="text"
+          id="searchName"
+          class="form-control"
+          placeholder="Enter name to search"
+          onkeyup="searchUsers()"
+        />
+      </div>
+
+      <table id="userTable" class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Mobile No</th>
+            <th>Email</th>
+            <th>Actions</th>
+            <!-- Added Actions column -->
+          </tr>
+        </thead>
+        <tbody>
+          <!-- User data will be inserted here by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      function addUser() {
+        const name = document.getElementById("name").value;
+        const mobileNo = document.getElementById("mobileNo").value;
+        const email = document.getElementById("email").value;
+
+        if (!name || !mobileNo || !email) {
+          alert("Please fill out all fields.");
+          return;
+        }
+
+        const user = { name, mobileNo, email };
+
+        fetch("/api/user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(user),
+        })
+          .then((response) => response.json())
+          .then(() => {
+            document.getElementById("userForm").reset();
+            fetchUsers();
+          })
+          .catch((error) => {
+            console.error("Error adding user:", error);
+          });
+      }
+
+      function updateUser() {
+        const email = document.getElementById("updateEmail").value;
+        const name = document.getElementById("updateName").value;
+        const mobileNo = document.getElementById("updateMobileNo").value;
+
+        if (!email) {
+          alert("Please provide the email of the user to update.");
+          return;
+        }
+
+        const userUpdate = { name, mobileNo };
+
+        fetch(`/api/user/${encodeURIComponent(email)}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userUpdate),
+        })
+          .then((response) => response.json())
+          .then(() => {
+            document.getElementById("updateForm").reset();
+            fetchUsers();
+          })
+          .catch((error) => {
+            console.error("Error updating user:", error);
+          });
+      }
+
+      function deleteUser(email) {
+        fetch(`/api/user/${encodeURIComponent(email)}`, {
+          method: "DELETE",
+        })
+          .then((response) => response.json())
+          .then(() => {
+            fetchUsers();
+          })
+          .catch((error) => {
+            console.error("Error deleting user:", error);
+          });
+      }
+
+      function fetchUsers(query = "") {
+        fetch(`/api/user?name=${encodeURIComponent(query)}`)
+          .then((response) => response.json())
+          .then((users) => {
+            const tableBody = document.querySelector("#userTable tbody");
+            tableBody.innerHTML = "";
+
+            users.forEach((user) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+              <td>${user.name}</td>
+              <td>${user.mobileNo}</td>
+              <td>${user.email}</td>
+              <td><button class="btn btn-danger" onclick="deleteUser('${user.email}')">Delete</button></td>
+            `;
+              tableBody.appendChild(row);
+            });
+          })
+          .catch((error) => {
+            console.error("Error fetching user data:", error);
+          });
+      }
+
+      function searchUsers() {
+        const query = document.getElementById("searchName").value;
+        fetchUsers(query);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        fetchUsers();
+      });
+    </script>
+  </body>
+</html>
