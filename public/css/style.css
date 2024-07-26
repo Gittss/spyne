@@ -3,13 +3,25 @@ body {
   background-color: #f4f4f4;
   margin: 0;
   padding: 0;
+  text-align: center;
 }
 .container {
   max-width: 800px;
   margin: auto;
   padding: 20px;
 }
+.forms-content {
+  text-align: left;
+}
+a {
+  text-decoration: none;
+  background-color: #007bff;
+  padding: 10px;
+  border-radius: 4px;
+  color: white;
+}
 h1 {
+  text-align: center;
   color: #333;
 }
 table {
